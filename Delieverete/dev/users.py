@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_bcrypt import Bcrypt
 from extensions import mysql
 
 users_blueprint = Blueprint('users', __name__)
@@ -14,6 +15,9 @@ def create_user():
         email = data['email']
         password = data['password']
 
+        #hash password
+        password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+
         cursor = mysql.connection.cursor()
 
         # Check if email already exists
@@ -24,7 +28,7 @@ def create_user():
 
         # Insert the new user
         cursor.execute("INSERT INTO Users (username, email, password_hash) VALUES (%s, %s, %s)",
-                       (username, email, password))
+                       (username, email, password_hash))
         mysql.connection.commit()
 
         return jsonify({"message": "User created successfully!"}), 201
